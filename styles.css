@@ -18,7 +18,7 @@ body {
 .color-box {
     width: 120px;
     /* Ajusta el ancho deseado */
-    height: 30px;
+    height: 60px;
     /* Ajusta la altura deseada */
     display: flex;
     flex-direction: column;

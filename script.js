@@ -22,12 +22,7 @@ function cargarDatos() {
             [0.01981, -0.07323, 2, 'negro', 10],
         ];
         console.log('Color values:', colorValues);
-        for (const colorEntry of colorValues) {
-            console.log('Color Entry:');
-            for (let i = 0; i < colorEntry.length; i++) {
-                console.log(`  Key ${i}:`, colorEntry[i]);
-            }
-        }
+
     } else {
         console.log('cargando Datos dinámicoss')
         fetch('./data.csv')
@@ -53,13 +48,16 @@ function cargarDatos() {
                     }
                 }
                 // Realizar operaciones con colorValues para obtener los valores RGB
-                console.log('Color values:', colorValues);
+                //Para ver por consola los valores descomentar lineas inferior
+                //console.log('Color values:', colorValues);
+
+                /*
                 for (const colorEntry of colorValues) {
-                    console.log('Color Entry:');
+                    //console.log('Color Entry:');
                     for (let i = 0; i < colorEntry.length; i++) {
                         console.log(`  Key ${i}:`, colorEntry[i]);
                     }
-                }
+                }*/
                 convertXYBriToRGB();
                 loadColors();
             })
@@ -94,10 +92,10 @@ function getReversedGammaCorrectedValue(value) {
 // Función para convertir coordenadas xy y brillo en valores RGB
 function convertXYBriToRGB(x, y, bri) {
     //comprobar si los valores son numeros para poder operar
-    console.log('funcion convertXYBBriToRGB loaded: x= ', x)
+    //console.log('funcion convertXYBBriToRGB loaded: x= ', x)
 
     // ... cálculos para obtener valores r, g, b ...
-    console.log('x:', x)
+    //console.log('x:', x)
     let xy = {
         x: x,
         y: y
@@ -128,7 +126,7 @@ function convertXYBriToRGB(x, y, bri) {
         g = g / max;
         b = b / max;
     }
-    console.log('RGB values:', r, g, b);
+    //console.log('RGB values:', r, g, b);
     return {
         r: Math.floor(r * 255),
         g: Math.floor(g * 255),
@@ -137,12 +135,13 @@ function convertXYBriToRGB(x, y, bri) {
 
 }
 
-// Función para crear un cuadro de color con etiqueta
+// Función para crear un elemento div con etiqueta dentro de los cuadros
 function createColorDiv(color, label, colorId) {
 
     // ... creación de un div con color y etiqueta en el html ...
     const div = document.createElement('div');
     div.style.backgroundColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
+    console.log('colorId:', colorId);
     div.innerHTML = `<p class="${colorId === 1 || colorId === 2 || colorId === 7 || colorId === 8 || colorId === 10 ? 'white-label' : ''}">${label}</p>`;
     return div;
 
@@ -162,10 +161,11 @@ function loadColors() {
         const x = colorEntry[0];
         const y = colorEntry[1];
         const bri = colorEntry[2];
+        const colorId = colorEntry[4];
 
         // ... convertir a RGB ...
         const rgb = convertXYBriToRGB(x, y, bri); //const rgb = convertXYBriToRGB(xy[0], xy[1], bri);
-        const colorDiv = createColorDiv(rgb, `${colorEntry[3]}`);
+        const colorDiv = createColorDiv(rgb, `${colorEntry[3]}`, colorId);
 
         // ... crear un cuadro de color con etiqueta en el html ...
         testColorColumn.appendChild(colorDiv); // Agregar al contenedor de pruebas
@@ -179,7 +179,8 @@ function loadColors() {
             g: targetEntry[1],
             b: targetEntry[2]
         };
-        const colorDiv = createColorDiv(rgb, targetEntry[3]);
+        const colorId = targetEntry[4];
+        const colorDiv = createColorDiv(rgb, targetEntry[3], colorId);
         // ... crear un cuadro de color con etiqueta ...
         targetColorColumn.appendChild(colorDiv); // Agregar al contenedor de objetivos
     }
