@@ -1,0 +1,39 @@
+/* styles.css */
+
+body {
+    display: flex;
+}
+
+.color-column {
+    width: 100px;
+    /* Cambia el valor del ancho según tus necesidades */
+    display: inline-block;
+    /* Alinea las columnas horizontalmente */
+    vertical-align: top;
+    /* Alinea las columnas en la parte superior */
+    margin: 0 10px;
+    /* Margen entre las columnas */
+}
+
+.color-box {
+    width: 120px;
+    /* Ajusta el ancho deseado */
+    height: 30px;
+    /* Ajusta la altura deseada */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #ccc;
+    margin: 5px;
+}
+
+.color-box p {
+    margin: 0;
+    padding: 5px;
+    font-size: 12px;
+}
+
+.white-label {
+    color: white;
+}
