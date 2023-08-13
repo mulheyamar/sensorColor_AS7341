@@ -72,6 +72,7 @@ function calcularBasicCounts(datosSensor, tint, gain) {
             basic_count[f] = dato[f] / (tint * gain);
         });
         // Agregar el resultado a la lista
+
         basic_counts.push(basic_count)
     }
 
@@ -82,7 +83,10 @@ function calcularBasicCounts(datosSensor, tint, gain) {
 
 //llamada a la funcion de cálculo de basic Counts con los valores del sensor, de tint y de gain:
 const basicCounts = calcularBasicCounts(datosSensor, tint, gain);
-//console.log('Basic Counts: ', basicCounts);
+console.log('************************************************')
+console.log('********** B A S I C   C O U N T S ***********')
+console.log('Basic Counts: ', basicCounts);
+
 
 //****** FUNCION PARA CORREGIR LOS BASIC COUNTS DE CADA LONGITUD DE ONDA ****** */
 
@@ -102,12 +106,15 @@ function calculateCorrectedData(basicCounts) {
     });
 
     // calculo el Data Sensor (Corr). Excel AS7341_Calibracion.xls/pestaña Demonstation Calculation. (columna G) 
-    const maxCorr = Math.max(...dataSensorCorr.map(counts => Math.max(...Object.values(counts))));
+    const maxCorrPerObject = dataSensorCorr.map(counts => Math.max(...Object.values(counts)));
+    console.log('Max Corr per Object:', maxCorrPerObject);
 
-    const dataSensorCorrVsNor = dataSensorCorr.map(counts => {
+
+    const dataSensorCorrVsNor = dataSensorCorr.map((counts, index) => {
         const normalizedCounts = {};
+        const maxCorrForObject = maxCorrPerObject[index]; // Obtener el valor maxCorr correspondiente al objeto actual
         for (const key in counts) {
-            normalizedCounts[key] = counts[key] / maxCorr;
+            normalizedCounts[key] = counts[key] / maxCorrForObject;
         }
         return normalizedCounts;
     });
