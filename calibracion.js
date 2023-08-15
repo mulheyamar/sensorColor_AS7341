@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 //***************************************************************************** */
 //****      D E C L A R  A C I O N   D E  V A R I A B L  E S               **** */
 //***************************************************************************** */
@@ -9,6 +11,12 @@ let gain = 512;
 
 //VARIABLES DE CORRECCION DEL BASIC_COUNT
 const { offsetCompensation, factorSensor } = require('./constants'); //importo las constantes para la corrección del basic count
+
+
+//VARIABLE DE MATRIZ ESPECTRAL GENERAL
+// Lee el archivo CSV 
+const spectralMatrix = fs.readFileSync('matrixRow.csv', 'utf-8');
+//console.log(spectralMatrix)
 
 //*--------------------------------
 //* comprobación de datos válidos :
@@ -82,14 +90,16 @@ function calcularBasicCounts(datosSensor, tint, gain) {
 }
 
 //llamada a la funcion de cálculo de basic Counts con los valores del sensor, de tint y de gain:
+
 const basicCounts = calcularBasicCounts(datosSensor, tint, gain);
-console.log('************************************************')
-console.log('********** B A S I C   C O U N T S ***********')
-console.log('Basic Counts: ', basicCounts);
+//console.log('************************************************')
+//console.log('********** B A S I C   C O U N T S ***********')
+//console.log('Basic Counts: ', basicCounts);
 
 
 //****** FUNCION PARA CORREGIR LOS BASIC COUNTS DE CADA LONGITUD DE ONDA ****** */
 
+var valoresCorregidos = []
 
 function calculateCorrectedData(basicCounts) {
     // calculo el Data Sensor (Corr). Excel AS7341_Calibracion.xls/pestaña Demonstation Calculation. (columna F) 
@@ -101,13 +111,20 @@ function calculateCorrectedData(basicCounts) {
             const correctedValue = factorSensor[key] * (counts[key] - offsetCompensation[key]);
             correctedCounts[key] = correctedValue;
             //console.log(`Corrected value for ${key}:`, correctedValue);
+            valoresCorregidos.push(correctedValue)
         }
+
         return correctedCounts;
     });
 
+    // Imprimir los correctedCounts antes de seguir con los cálculos posteriores
+    //console.log('dataSensorCorr:', dataSensorCorr);
+
+
+
     // calculo el Data Sensor (Corr). Excel AS7341_Calibracion.xls/pestaña Demonstation Calculation. (columna G) 
-    const maxCorrPerObject = dataSensorCorr.map(counts => Math.max(...Object.values(counts)));
-    console.log('Max Corr per Object:', maxCorrPerObject);
+    const maxCorrPerObject = dataSensorCorr.map(counts => Math.max(...Object.values(counts))); //calculo el máximo de cada objeto(color)
+    //console.log('Max Corr per Object:', maxCorrPerObject);
 
 
     const dataSensorCorrVsNor = dataSensorCorr.map((counts, index) => {
@@ -119,10 +136,99 @@ function calculateCorrectedData(basicCounts) {
         return normalizedCounts;
     });
 
-    return dataSensorCorrVsNor;
+    return { dataSensorCorrVsNor, dataSensorCorr };
 }
 
 //llamando a la funcion que corrige y normaliza los datos basic_count:
-const correctedAndNormalizedData = calculateCorrectedData(basicCounts);
+const { correctedAndNormalizedData, dataSensorCorr } = calculateCorrectedData(basicCounts);
 
-console.log('Corrected and Normalized Data:', correctedAndNormalizedData);
+//console.log('Corrected and Normalized Data:', correctedAndNormalizedData);
+
+
+
+//****** FUNCION PARA CALCULAR LA RECOSNTRUCCION ESPECTRAL (SPECTRAL RECONSTRUCTION EXCEL COLUMN N -Demonstration Calculations page)***
+
+//convierto los datos de matrixRow en una matriz de 271x10
+matrixArray = []
+
+function formatearMatrix() {
+    // dividir la cadena en lineas
+    const rows = spectralMatrix.trim().split('\n');
+    //convertir cada fila en un array de números
+    const matrArray = rows.map(row => {
+        const values = row.split(',').map(value => parseFloat(value));
+        return values;
+    })
+    return matrArray;
+}
+matrixArray = formatearMatrix()
+
+
+//le quito la key (f1...f8) y me quedo solo con el valor para montar las matrices.
+const subArraysDataCorrected = [];
+for (let i = 0; i < valoresCorregidos.length; i += 10) {
+    const subArray = valoresCorregidos.slice(i, i + 10);
+    subArraysDataCorrected.push(subArray);
+}
+
+console.log('subArraysDataCorrected: ', (subArraysDataCorrected.slice(0, 3)));
+console.log('matrixArray:', (matrixArray.slice(0, 3)));
+
+// Hay que multiplicar subArraysDataCorrected de 10matrices de 10f x 1c por matrixArray de 271f x 10c
+// Multiplicación de matrices
+
+
+// Multiplicar cada submatriz de subArraysDataCorrected por matrixArray
+
+const matrices = {};
+const resultMatrices = {};
+
+for (let i = 0; i < subArraysDataCorrected.length; i++) {
+    const variableName = `matrix${i + 1}`;
+    const matrixData = subArraysDataCorrected[i];
+    matrices[variableName] = matrixData;
+}
+
+const filas_matrixArray = matrixArray.length;
+const column_matrixArray = matrixArray[0].length;
+
+const filas_matrix1 = matrices.matrix1.length;
+const column_matrix1 = 1;
+
+console.log(`matriz m1: ${filas_matrixArray} filas x ${column_matrixArray} columnas`);
+console.log(`matrices.matrix1: ${filas_matrix1} filas x ${column_matrix1} columnas`);
+
+// Verificar si las matrices pueden multiplicarse
+if (column_matrixArray != filas_matrix1) {
+    console.log("No se pueden multiplicar las matrices");
+} else {
+    console.log(`La matriz resultante es de ${filas_matrixArray} x ${column_matrix1}`);
+
+    // Hacer la multiplicación para cada matriz individual
+    for (let i = 0; i < subArraysDataCorrected.length; i++) {
+        const variableName = `matrix${i + 1}`;
+        const currentMatrix = matrices[variableName];
+
+        const multiplicacion = new Array(filas_matrixArray); // Crear un array vacío del número de filas de m1
+
+        // Crear la matriz vacía de filas m1 x columnas m2
+        for (let x = 0; x < multiplicacion.length; x++) {
+            multiplicacion[x] = new Array(column_matrix1).fill(0);
+        }
+
+        // Realizar la multiplicación
+        for (let x = 0; x < multiplicacion.length; x++) {
+            multiplicacion[x][0] = 0; // Inicializar el valor en la posición [x][0] para cada fila
+
+            for (let z = 0; z < column_matrixArray; z++) {
+                multiplicacion[x][0] += matrixArray[x][z] * currentMatrix[z];
+            }
+        }
+
+        // Almacena la matriz resultante en el objeto resultMatrices
+        resultMatrices[variableName] = multiplicacion;
+    }
+}
+
+// Ahora resultMatrices contendrá todas las matrices resultantes
+console.log('Matrices resultantes:', resultMatrices.matrix1);

@@ -28,6 +28,9 @@ const factorSensor = {
     IR: 1.26941570639527
 };
 
+
+
+
 module.exports = {
     offsetCompensation,
     factorSensor
