@@ -1,8 +1,35 @@
+//* 1º CALCULAR LOS BASIC_COUNTS. (COLUMNA C)
+// usamos el archivo sensorData.js y lo guardo en variable <dataSensor>
+
+//* 2º CALCULAR DATA SENSOR CORRECT (COLUMNA F)
+// usamos la matriz offset Compensation per Channel: variable <offsetCompensation>
+// y usamos también la matriz Correction vector per Channel: variable <factorSensor>
+
+//* 3º CALCULAR DATA SENSOR CORRECT NORMALIZADOS (COLUMNA G)
+
+//* 4º CONSTRUIMOS LA MATRIZ SPECTRAL (COLUMNA N)
+// copiamos el excel en el archivo spectralMatrix.csv, lo procesamos con el spectralMatrixFormat.js 
+//para formatearlo y exportar la matriz a matrixRow.csv guardandola en esta variable: <spectralMatrix>
+
+//* 5º CALCULAMOS LA MATRIZ XYZ (COLUMNAS R,S,T)
+// usamos la matriz CIE1931 que primero pegamos del excel al archivo standardValuesMatrix_CIE1931.csv y 
+//luego mediante el spectralMatrixFormat.js la formateamos y guardamos en standardValuesFormated_CIE1931 que guardamos en la variable: <matrizFormateadaCie1931>
+
+//* 6º CALCULAMOS LA X,Y,Z CIE1931 BASADA EN LA GOLDEN UNIT SPECTRAL CALIBRATION MATRIX. (COLUMNA W)
+// es la suma de cada una de las columnas R,S,T
+
+//* 7º CALCULAMOS LA x_,y_,z_ NORMALIZADAS (COLUMNA W)
+
+//* 8º CALCULAMOS Lx y exportamos datos x,y,lx al archivo data.csv
+
 const fs = require('fs');
 
 //***************************************************************************** */
+//***************************************************************************** */
 //****      D E C L A R  A C I O N   D E  V A R I A B L  E S               **** */
 //***************************************************************************** */
+//***************************************************************************** */
+
 const datosSensor = require('./sensorData'); //importo la variable de datos del sensor que usaré para rectificarlos
 
 //VARIABLES GAIN Y TINT (CONTROLADAS POR LOS SELECTORES WEB)
@@ -11,12 +38,16 @@ let gain = 512;
 
 //VARIABLES DE CORRECCION DEL BASIC_COUNT
 const { offsetCompensation, factorSensor } = require('./constants'); //importo las constantes para la corrección del basic count
+const { Console } = require('console');
 
 
 //VARIABLE DE MATRIZ ESPECTRAL GENERAL
 // Lee el archivo CSV 
 const spectralMatrix = fs.readFileSync('matrixRow.csv', 'utf-8');
 //console.log(spectralMatrix)
+
+//VARIABLE MATRIZ CIE 1931
+const matrizFormateadaCie1931 = fs.readFileSync('standardValuesFormated_CIE1931.csv', 'utf-8')
 
 //*--------------------------------
 //* comprobación de datos válidos :
@@ -151,9 +182,9 @@ const { correctedAndNormalizedData, dataSensorCorr } = calculateCorrectedData(ba
 //convierto los datos de matrixRow en una matriz de 271x10
 matrixArray = []
 
-function formatearMatrix() {
+function formatearMatrix(matrix) {
     // dividir la cadena en lineas
-    const rows = spectralMatrix.trim().split('\n');
+    const rows = matrix.trim().split('\n');
     //convertir cada fila en un array de números
     const matrArray = rows.map(row => {
         const values = row.split(',').map(value => parseFloat(value));
@@ -161,8 +192,9 @@ function formatearMatrix() {
     })
     return matrArray;
 }
-matrixArray = formatearMatrix()
-
+matrixArray = formatearMatrix(spectralMatrix)
+    //convierto los datos de standardValuesFormated_CIE1931 en una matriz de 271x3
+matrizCie1931 = formatearMatrix(matrizFormateadaCie1931)
 
 //le quito la key (f1...f8) y me quedo solo con el valor para montar las matrices.
 const subArraysDataCorrected = [];
@@ -188,7 +220,6 @@ for (let i = 0; i < subArraysDataCorrected.length; i++) {
     const matrixData = subArraysDataCorrected[i];
     matrices[variableName] = matrixData;
 }
-
 const filas_matrixArray = matrixArray.length;
 const column_matrixArray = matrixArray[0].length;
 
@@ -203,6 +234,8 @@ if (column_matrixArray != filas_matrix1) {
     console.log("No se pueden multiplicar las matrices");
 } else {
     console.log(`La matriz resultante es de ${filas_matrixArray} x ${column_matrix1}`);
+
+    //* MULTIPLICAR MATRICES subArraysDataCorrected X matrixArray PARA OBTENER LA MATRIZ SPECTRAL RECONSTRUCTION (COLUMNA N DEL EXCEL, pagina demostration Calculations.)
 
     // Hacer la multiplicación para cada matriz individual
     for (let i = 0; i < subArraysDataCorrected.length; i++) {
@@ -229,6 +262,15 @@ if (column_matrixArray != filas_matrix1) {
         resultMatrices[variableName] = multiplicacion;
     }
 }
-
-// Ahora resultMatrices contendrá todas las matrices resultantes
 console.log('Matrices resultantes:', resultMatrices.matrix1);
+console.log('MatrizCie1931', matrizCie1931)
+
+//* FUNCION PARA OBTENER LA MATRIZ CALCULATED XYZ (columnas R,S,T del excel, pagina Demonstation Calculations.)
+// Función para multiplicar cada valor de una fila por una constante
+function multiplicarFilaPorConstante(fila, constante) {
+    return fila.map(valor => valor * constante);
+}
+
+
+// Crear una matriz para almacenar las matrices resultantes XYZ
+const matricesResultantesXYZ = {};
