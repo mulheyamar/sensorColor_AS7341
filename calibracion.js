@@ -443,9 +443,9 @@ function obtenerLx(valor) {
     }
     console.log('dataXYLx', dataXYLx)
         // Exportar los datos a un archivo CSV
-        /*
+
     const csvData = dataXYLx.map(row => row.join(',')).join('\n');
     fs.writeFileSync('data.csv', csvData, 'utf-8');
-    */
+
     return dataXYLx
 }
