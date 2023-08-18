@@ -1,23 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>Colores</title>
 </head>
+
 <body>
-    <div class="color-column" id="target-colors">
-        <h2>Objetivo</h2>
-        <!-- Aquí se cargarán los colores objetivo -->
+    <div class="color-column">
+        <h2>Colores Objetivo</h2>
+        <div id="target-colors" class="color-box-container"></div>
     </div>
 
-    <div class="color-column" id="test-colors">
-        <h2>Pruebas</h2>
-        <!-- Aquí se cargarán los colores de prueba -->
+    <div class="color-column">
+        <h2>Colores de Prueba</h2>
+        <div id="test-colors" class="color-box-container"></div>
+    </div>
+    <div>
+        <label for="tintSlider">Tint:</label>
+        <input type="range" id="tint" min="1" max="182" step="1" value="182"><br>
+        <span id="tintValue">Valor de Tint</span>
+    </div>
+    <div>
+        <label for="gainSlider">Gain:</label>
+        <input type="range" id="gain" min="1" max="512" step="1" value="512"><br>
+        <span id="gainValue">Valor de Gain</span>
+    </div>
+    <div>
+        <label for="lxSlider">Lx:</label>
+        <input type="range" id="lx" min="0" max="1" step="0.1" value="1"><br>
+        <span id="lxValue">Valor de LX</span>
     </div>
 
-    <script src="script.js"></script>
+
+
+
+    <script type="module" src="calibracion.js"></script>
+    <!--<script src="script.js"></script> -->
+
 </body>
+
 </html>

@@ -2,23 +2,24 @@
 
 body {
     display: flex;
+    justify-content: center;
 }
 
 .color-column {
-    width: 100px;
+    width: 120px;
     /* Cambia el valor del ancho según tus necesidades */
     display: inline-block;
     /* Alinea las columnas horizontalmente */
     vertical-align: top;
     /* Alinea las columnas en la parte superior */
-    margin: 0 10px;
+    margin: 0 20px;
     /* Margen entre las columnas */
 }
 
 .color-box {
     width: 120px;
     /* Ajusta el ancho deseado */
-    height: 60px;
+    height: 200px;
     /* Ajusta la altura deseada */
     display: flex;
     flex-direction: column;

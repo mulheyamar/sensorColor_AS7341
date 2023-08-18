@@ -1,5 +1,10 @@
 //crear variable para almacenar los datos obtenidos por el sensor de las lecturas de los colores "target"
-const datosSensor = [{
+
+
+// exporto la variable
+//module.exports = datosSensor; //para node.js se sustituye por:
+
+export const datosSensor = [{
         color: 'violeta',
         F1: 489,
         F2: 4810,
@@ -131,6 +136,3 @@ const datosSensor = [{
     },
 
 ];
-
-// exporto la variable
-module.exports = datosSensor;

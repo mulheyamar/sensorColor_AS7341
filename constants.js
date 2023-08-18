@@ -1,7 +1,8 @@
 // constants.js que vienen de las tablas: OffSet Compensation per Channel y Correction per Channel respectivamente, dentro de la hoja de used Correction Values del excel AS7341_Calibracion.xls
 
 // Offset compensation values
-const offsetCompensation = {
+
+export const offsetCompensation = {
     F1: 0.00196979,
     F2: 0.00724927,
     F3: 0.00319381,
@@ -14,8 +15,9 @@ const offsetCompensation = {
     IR: 0.001
 };
 
+
 // Factor sensor values
-const factorSensor = {
+export const factorSensor = {
     F1: 1.0281124497992,
     F2: 1.03149253731343,
     F3: 1.03142493638677,
@@ -30,8 +32,9 @@ const factorSensor = {
 
 
 
-
+/*
 module.exports = {
     offsetCompensation,
     factorSensor
 };
+*/
