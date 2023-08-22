@@ -38,3 +38,27 @@ body {
 .white-label {
     color: white;
 }
+
+#sliders-container {
+    background-color: #ccc;
+}
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.slider-row label {
+    width: 100px;
+}
+
+.slider-row input [type="range"] {
+    flex: 3;
+    width: 100%;
+}
+
+#linear-transformation-coefficients {
+    border: 1px solid #ccc;
+    padding: 20px;
+}

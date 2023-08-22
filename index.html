@@ -21,24 +21,77 @@
     <div>
         <label for="tintSlider">Tint:</label>
         <input type="range" id="tint" min="1" max="300" step="1" value="182"><br>
-        <span id="tintValue">Valor de Tint</span>
+        <span id="tintValue"></span>
     </div>
     <div>
         <label for="gainSlider">Gain:</label>
         <input type="range" id="gain" min="1" max="650" step="1" value="512"><br>
-        <span id="gainValue">Valor de Gain</span>
+        <span id="gainValue"></span>
     </div>
     <div>
         <label for="lxSlider">Lx:</label>
         <input type="range" id="lx" min="0" max="1" step="0.1" value="1"><br>
-        <span id="lxValue">Valor de LX</span>
+        <span id="lxValue"></span>
     </div>
+    <div>
+        <label for="gammaInversa">Gamma:</label>
+        <input type="range" id="gamma" min="0.1" max="3.5" step="0.1" value="1.8"><br>
+        <span id="gammaValue"></span>
+    </div>
+    <div id="sliders-container">
+        <div id="linear-transformation-coefficients">
+            <h2>Coeficientes de Transformación Lineal</h2>
+            <div class="slider-row">
+                <label for="rX">redX:</label>
+                <input type="range" id="rX" min="0" max="3" step="0.001" value="1.656492">
+                <span id="rxValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="rY">redY:</label>
+                <input type="range" id="rY" min="0" max="3" step="0.001" value="0.354851">
+                <span id="ryValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="rZ">redZ:</label>
+                <input type="range" id="rZ" min="0" max="3" step="0.001" value="0.255038">
+                <span id="rzValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="gX">greenX:</label>
+                <input type="range" id="gX" min="0" max="3" step="0.001" value="0.707196">
+                <span id="gxValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="gY">greenY:</label>
+                <input type="range" id="gY" min="0" max="3" step="0.001" value="1.655397">
+                <span id="gyValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="gZ">greenZ:</label>
+                <input type="range" id="gZ" min="0" max="3" step="0.001" value="0.036152">
+                <span id="gzValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="bX">blueX:</label>
+                <input type="range" id="bX" min="0" max="3" step="0.001" value="0.051713">
+                <span id="bxValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="bY">blueY:</label>
+                <input type="range" id="bY" min="0" max="3" step="0.001" value="0.121364">
+                <span id="byValue"></span>
+            </div>
+            <div class="slider-row">
+                <label for="bZ">blueZ:</label>
+                <input type="range" id="bZ" min="0" max="3" step="0.001" value="1.011530">
+                <span id="bzValue"></span>
+            </div>
+        </div>
 
 
 
-
-    <script type="module" src="calibracion.js"></script>
-    <!--<script src="script.js"></script> -->
+        <script type="module" src="calibracion.js"></script>
+        <!--<script src="script.js"></script> -->
 
 </body>
 

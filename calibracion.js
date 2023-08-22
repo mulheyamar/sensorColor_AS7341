@@ -9,8 +9,8 @@ import { offsetCompensation, factorSensor } from './constants.js';
 //ACTUALIZACION DE VARIABLES DESDE LA WEB
 
 //valores iniciales de las variables
-let tint = 80;
-let gain = 280;
+let tint = 129;
+let gain = 514;
 let lx = 1;
 let calcLx = 683 * lx;
 
@@ -25,6 +25,18 @@ let colorValues = [];
 let basic_counts = [];
 var sumMatrices = {};
 let matrizResultante = [];
+//exponente de corrección de gamma inversa (de 0.1 a 3.0)
+let coefGammaInversa = 2.6;
+// coeficiente transformacion lineales:
+let rX = 2.586; //1.656492; //
+let rY = 1.206; //0.354851; //
+let rZ = 0.356; //0.255038; //
+let gX = 1.392; //0.707196; //
+let gY = 2.024; //1.655397; //
+let gZ = 0.091; //0.036152; //
+let bX = 2.077; //0.05173; //
+let bY = 2.746; //0.121364; //
+let bZ = 1.073; //1.011530 //
 
 const colorTargets = [
     [118, 0, 237, 'violeta', 1],
@@ -37,7 +49,7 @@ const colorTargets = [
     [255, 0, 0, 'rojo', 8],
     [255, 255, 255, 'blanco', 9],
     [0, 0, 0, 'negro', 10]
-];;
+];
 const dataXYLx = []
 let idContador = 1; //variable para añadir un id a la matriz dataXYLx
 const idToText = {
@@ -84,18 +96,44 @@ async function obtenerDatosMatrizFormateadaCie1931() {
         console.error('Error al cargar el archivo standardValuesFormated_CIE1931.csv', error);
     }
 }
-
+//* ***************************************************************************
+//* ***************************** DOM *****************************************
+//* ***************************************************************************
 // Obtener los elementos de los sliders por su id
 const targetColorColumn = document.getElementById('target-colors');
 const testColorColumn = document.getElementById('test-colors');
 const tintSlider = document.getElementById('tint');
 const gainSlider = document.getElementById('gain');
 const lxSlider = document.getElementById('lx');
+const gammaSlider = document.getElementById('gamma');
+const redXSlider = document.getElementById('rX');
+const redYSlider = document.getElementById('rY');
+const redZSlider = document.getElementById('rZ');
+const greenXSlider = document.getElementById('gX');
+const greenYSlider = document.getElementById('gY');
+const greenZSlider = document.getElementById('gZ');
+const blueXSlider = document.getElementById('bX');
+const blueYSlider = document.getElementById('bY');
+const blueZSlider = document.getElementById('bZ');
+
 
 // Obtener los elementos para mostrar los valores
 const tintValueDisplay = document.getElementById('tintValue');
 const gainValueDisplay = document.getElementById('gainValue');
 const lxValueDisplay = document.getElementById('lxValue');
+const gammaInvValueDisplay = document.getElementById('gammaValue');
+const rxValueDisplay = document.getElementById('rxValue');
+const ryValueDisplay = document.getElementById('ryValue');
+const rzValueDisplay = document.getElementById('rzValue');
+const gxValueDisplay = document.getElementById('gxValue');
+const gyValueDisplay = document.getElementById('gyValue');
+const gzValueDisplay = document.getElementById('gzValue');
+const bxValueDisplay = document.getElementById('bxValue');
+const byValueDisplay = document.getElementById('byValue');
+const bzValueDisplay = document.getElementById('bzValue');
+
+
+
 //funcion para eliminar los elementos cada vez que se cambien las variables:
 function clearChildElements(element) {
     while (element.firstChild) {
@@ -117,7 +155,18 @@ function handleSliderChange(slider, variableName, valueDisplay) {
     valueDisplay.textContent = window[variableName]; // Mostrar el valor en el elemento
     tint = parseInt(tintSlider.value);
     gain = parseInt(gainSlider.value);
-    lx = parseFloat(lxSlider.value)
+    lx = parseFloat(lxSlider.value);
+    coefGammaInversa = parseFloat(gammaSlider.value);
+    rX = parseFloat(redXSlider.value);
+    rY = parseFloat(redYSlider.value);
+    rZ = parseFloat(redZSlider.value);
+    gX = parseFloat(greenXSlider.value);
+    gY = parseFloat(greenYSlider.value);
+    gZ = parseFloat(greenZSlider.value);
+    bX = parseFloat(blueXSlider.value);
+    bY = parseFloat(blueYSlider.value);
+    bZ = parseFloat(blueZSlider.value);
+
     console.log(`${variableName}:`, window[variableName]);
     console.log(`${slider.id} seleccionado: ${slider.value}`);
 
@@ -132,21 +181,70 @@ function handleSliderChange(slider, variableName, valueDisplay) {
     colorValues = []
     main();
 }
+
+// Asignar eventos de cambio a los sliders
+tintSlider.addEventListener('input', () => handleSliderChange(tintSlider, 'tint', tintValueDisplay));
+gainSlider.addEventListener('input', () => handleSliderChange(gainSlider, 'gain', gainValueDisplay));
+lxSlider.addEventListener('input', () => handleSliderChange(lxSlider, 'lx', lxValueDisplay));
+gammaSlider.addEventListener('input', () => handleSliderChange(gammaSlider, 'gamma', gammaInvValueDisplay));
+redXSlider.addEventListener('input', () => handleSliderChange(redXSlider, 'rx', rxValueDisplay));
+redYSlider.addEventListener('input', () => handleSliderChange(redYSlider, 'ry', ryValueDisplay));
+redZSlider.addEventListener('input', () => handleSliderChange(redZSlider, 'rz', rzValueDisplay));
+greenXSlider.addEventListener('input', () => handleSliderChange(greenXSlider, 'gx', gxValueDisplay));
+greenYSlider.addEventListener('input', () => handleSliderChange(greenYSlider, 'gy', gyValueDisplay));
+greenZSlider.addEventListener('input', () => handleSliderChange(greenZSlider, 'gz', gzValueDisplay));
+blueXSlider.addEventListener('input', () => handleSliderChange(blueXSlider, 'bx', bxValueDisplay));
+blueYSlider.addEventListener('input', () => handleSliderChange(blueYSlider, 'by', byValueDisplay));
+blueZSlider.addEventListener('input', () => handleSliderChange(blueZSlider, 'bz', bzValueDisplay));
+
+// Inicializar valores en los spans
+document.getElementById('tintValue').textContent = tint;
+document.getElementById('gainValue').textContent = gain;
+document.getElementById('lxValue').textContent = lx;
+document.getElementById('gammaValue').textContent = coefGammaInversa;
+document.getElementById('rxValue').textContent = rX;
+document.getElementById('ryValue').textContent = rY;
+document.getElementById('rzValue').textContent = rZ;
+document.getElementById('gxValue').textContent = gX;
+document.getElementById('gyValue').textContent = gY;
+document.getElementById('gzValue').textContent = gZ;
+document.getElementById('bxValue').textContent = bX;
+document.getElementById('byValue').textContent = bY;
+document.getElementById('bzValue').textContent = bZ;
+// Configurar valores iniciales de los sliders
+document.getElementById('tint').value = tint;
+document.getElementById('gain').value = gain;
+document.getElementById('lx').value = lx;
+document.getElementById('gamma').value = coefGammaInversa;
+document.getElementById('rX').value = rX;
+document.getElementById('rY').value = rY;
+document.getElementById('rZ').value = rZ;
+document.getElementById('gX').value = gX;
+document.getElementById('gY').value = gY;
+document.getElementById('gZ').value = gZ;
+document.getElementById('bX').value = bX;
+document.getElementById('bY').value = bY;
+document.getElementById('bZ').value = bZ;
+
+// 
+
+
 // Función para crear un elemento div con etiqueta dentro de los cuadros
 function createColorDiv(color, label, colorId) {
 
     // ... creación de un div con color y etiqueta en el html ...
     const div = document.createElement('div');
     div.style.backgroundColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
-    //console.log('colorId:', colorId);
-    div.innerHTML = `<p class="${colorId === 1 || colorId === 2 || colorId === 7 || colorId === 8 || colorId === 10 ? 'white-label' : ''}">${label}</p>`;
+
+    // Agrega un espacio en blanco como contenido del div para asegurarte de que sea visible
+    div.innerHTML = '&nbsp;';
+
+
+
     return div;
 
 }
-// Asignar eventos de cambio a los sliders
-tintSlider.addEventListener('input', () => handleSliderChange(tintSlider, 'tint', tintValueDisplay));
-gainSlider.addEventListener('input', () => handleSliderChange(gainSlider, 'gain', gainValueDisplay));
-lxSlider.addEventListener('input', () => handleSliderChange(lxSlider, 'lx', lxValueDisplay));
+
 
 //* *** FUNCIONES GENERALES:
 // Función para multiplicar cada valor de una fila por una constante
@@ -155,7 +253,8 @@ function multiplicarFilaPorConstante(fila, constante) {
 }
 // Función para obtener el valor corregido de gamma inversa
 function getReversedGammaCorrectedValue(value) {
-    return value <= 0.0031308 ? 12.92 * value : (1.0 + 0.055) * Math.pow(value, 1.0 / 2.4) - 0.055;
+    //Si el valor de value es menor o igual a 0.0031308, se aplica una corrección lineal, en caso contrario se aplica una corrección de gamma inversa.
+    return value <= 0.0031308 ? 12.92 * value : (1.0 + 0.055) * Math.pow(value, 1.0 / coefGammaInversa) - 0.055;
 }
 // funcion para convertir a RGN
 function convertXYBriToRGB(x, y, bri) {
@@ -173,10 +272,12 @@ function convertXYBriToRGB(x, y, bri) {
     let Y = bri / 255;
     let X = (Y / xy.y) * xy.x;
     let Z = (Y / xy.y) * z;
-
-    let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
-    let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
-    let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+    //console.log('rx,ry,rz: ',rX,',',rY,',',rZ)
+    //console.log('gx,gy,gz: ',gX,',',gY,',',gZ)
+    //console.log('bx,by,bz: ',bX,',',bY,',',bZ)
+    let r = X * rX - Y * rY - Z * rZ;
+    let g = -X * gX + Y * gY + Z * gZ;
+    let b = X * bX - Y * bY + Z * bZ;
 
     r = getReversedGammaCorrectedValue(r);
     g = getReversedGammaCorrectedValue(g);
@@ -244,9 +345,9 @@ async function calcularBasicCounts(sensorData, t, g) {
 
 }
 
-//* *******************************************************
-//* ***** FUNCION CALCULAR BASIC COUNTS CORREGIDOS  *******
-//* *******************************************************
+//* *****************************************************************
+//* ***** FUNCION CALCULAR BASIC COUNTS CORREGIDOS COLUMNA F  *******
+//* *****************************************************************
 
 async function calculateCorrectedData(basicCounts, factorSensor, offsetCompensation) {
     //console.log('4a. FUNCION CALCULAR CORRECCION BASIC COUNTS EJECUTADA....')
@@ -269,9 +370,7 @@ async function calculateCorrectedData(basicCounts, factorSensor, offsetCompensat
 
         return correctedCounts;
     });
-
-    // Imprimir los correctedCounts antes de seguir con los cálculos posteriores
-    //console.log('dataSensorCorr:', dataSensorCorr);
+    //* ***** FUNCION CALCULAR BASIC COUNTS CORREGIDOS Y NORMALIZADOS COLUMNA G  *******
 
     // calculo el Data Sensor (Corr/NOR). Excel AS7341_Calibracion.xls/pestaña Demonstation Calculation. (columna G) 
     const maxCorrPerObject = dataSensorCorr.map(counts => Math.max(...Object.values(counts))); //calculo el máximo de cada objeto(color)
@@ -290,68 +389,49 @@ async function calculateCorrectedData(basicCounts, factorSensor, offsetCompensat
     console.log('****** calculateCorrectedData FINALIZA A LAS: ****', tiempoFin, tiempoFin.getMilliseconds())
     return { dataSensorCorrVsNor, dataSensorCorr };
 }
-//* *******************************************************
-//* *****     FUNCION RECONSTRUCCION ESPECTRAL      *******
-//* *******************************************************
+//* *****************************************************************
+//* *****     FUNCION RECONSTRUCCION ESPECTRAL  COLUMNA N     *******
+//* *****************************************************************
+//Se multiplica la columna F(los basic_counts corregidos) por la MatrizSpectral General de 721filas x 10columnas, se obtiene una matriz de 721 filas x 1 columna
 async function spectralReconstruccion(matrizSpectral) {
     const tiempoInicio = new Date();
     console.log('****** spectralReconstruccion HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
 
-    //console.log('5a. FUNCION SPECTRAL RECONSTRUCCION EJECUTADA....')
-    console.log('RESULT MATRICES_1, antes:::', resultMatrices)
-        //le quito la key (f1...f8) y me quedo solo con el valor para montar las matrices.
+    //le quito la key (F1...F8) a los basic_counts corregidos y me quedo solo con el valor para montar las matrices al que le llamo suArrayDataCorrected
     const subArraysDataCorrected = [];
     for (let i = 0; i < valoresCorregidos.length; i += 10) {
         const subArray = valoresCorregidos.slice(i, i + 10);
         subArraysDataCorrected.push(subArray);
     }
-
-    // Hay que multiplicar subArraysDataCorrected de 10matrices de 10f x 1c por matrizSpectral de 271f x 10c
-
-    // Multiplicar cada submatriz de subArraysDataCorrected por matrizSpectral
-
-    //console.log('matrizSpectral',matrizSpectral)
+    // Hay que multiplicar subArraysDataCorrected de 10matrices de 10f x 1c por matrizSpectral de 271f x 10c cada submatriz de subArraysDataCorrected por matrizSpectral
+    //recorro el subArrayDataCorrected y le añado a cada Array el nombre matrix + (un numero) del 1 a cada submatriz
     for (let i = 0; i < subArraysDataCorrected.length; i++) {
         const variableName = `matrix${i + 1}`;
         const matrixData = subArraysDataCorrected[i];
         matrices[variableName] = matrixData;
     }
 
+    //creo estas variables locales para comprobar posteriormente si se pueden multiplicar las matrices
     const filas_matrixArray = matrizSpectral.length;
-    //console.log('matrizSpectral[0]',matrizSpectral[0])
     const column_matrixArray = matrizSpectral[0].length;
-
     const filas_matrix1 = matrices.matrix1.length;
     const column_matrix1 = 1;
 
-    //console.log(`matriz m1: ${filas_matrixArray} filas x ${column_matrixArray} columnas`);
-    //console.log(`matrices.matrix1: ${filas_matrix1} filas x ${column_matrix1} columnas`);
-
-    // Verificar si las matrices pueden multiplicarse
+    // Comprobar si las matrices pueden multiplicarse
     if (column_matrixArray != filas_matrix1) {
         console.log("No se pueden multiplicar las matrices");
     } else {
-
-
-
-        //console.log(`La matriz resultante es de ${filas_matrixArray} x ${column_matrix1}`);
-        console.log('::::::::RESULT MATRICES_2:::', resultMatrices)
-            //* MULTIPLICAR MATRICES subArraysDataCorrected X matrizSpectral PARA OBTENER LA MATRIZ SPECTRAL RECONSTRUCTION (COLUMNA N DEL EXCEL, pagina demostration Calculations.)
+        //* MULTIPLICAR MATRICES subArraysDataCorrected X matrizSpectral PARA OBTENER LA MATRIZ SPECTRAL RECONSTRUCTION (COLUMNA N DEL EXCEL, pagina demostration Calculations.)
         resultMatrices = {};
-        console.log(':::::::::RESULT MATRICES_3:::', resultMatrices)
-
-        // Hacer la multiplicación para cada matriz individual
+        // Hacer la multiplicación para cada una de las 10 matrices.
         for (let i = 0; i < subArraysDataCorrected.length; i++) {
             const variableName = `matrix${i + 1}`;
             const currentMatrix = matrices[variableName];
-
             const multiplicacion = new Array(filas_matrixArray); // Crear un array vacío del número de filas de m1
-
             // Crear la matriz vacía de filas m1 x columnas m2
             for (let x = 0; x < multiplicacion.length; x++) {
                 multiplicacion[x] = new Array(column_matrix1).fill(0);
             }
-
             // Realizar la multiplicación
             for (let x = 0; x < multiplicacion.length; x++) {
                 multiplicacion[x][0] = 0; // Inicializar el valor en la posición [x][0] para cada fila
@@ -367,7 +447,6 @@ async function spectralReconstruccion(matrizSpectral) {
         const tiempoFin = new Date()
         console.log('****** la spectralReconstruccion FINALIZA A LAS: ****', tiempoFin, tiempoFin.getMilliseconds())
     }
-
     //necesito recortar las matrices de resultMatrices para que contengan el mismo número de filas que matrizCie1931:
     const numFilasDeseadas = matrizCie1931.length
     for (const variableName in resultMatrices) {
@@ -376,58 +455,34 @@ async function spectralReconstruccion(matrizSpectral) {
         }
     }
     console.log('resultMatrices DESPUES', resultMatrices)
-
     return { resultMatrices, matrizCie1931 }
 }
-//* *******************************************************
-//* *****        FUNCION MULTIPLICAR MATRICES       *******
-//* *******************************************************
+//* *********************************************************************
+//* *****        FUNCION MULTIPLICAR MATRICES   COLUMNAS R,S,T    *******
+//* *********************************************************************
+//Cada uno de los tres valores de la fila 1 de la matrizCie1931 se multiplica por el primer valor de la matriz SpectralRecontrucción, la segunda fila por el segundo valor y así sucesivamente.
 async function resultMatricesXmatrizCie1931(resultMatrices, matrizCie1931) {
     const tiempoInicio = new Date();
     console.log('****** resultMatricesXmatrizCie1931 HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
-
-
-    // Recorre cada matriz en resultMatrices y realiza la multiplicación con matrizCie1931
-    //console.log('6º- FUNCION resultMatricesXmatrizCie1931 EJECUTADA')
-    //console.log('resultMatrices:',resultMatrices)
-    //console.log('matrizCie1931:',matrizCie1931)
-
+        // Recorre cada matriz en resultMatrices y realiza la multiplicación con matrizCie1931
     for (const variableName in matrices) {
         if (matrices.hasOwnProperty(variableName)) {
             const currentMatrix = matrices[variableName];
-
-
             for (let i = 0; i < currentMatrix.length; i++) {
-
                 const filaResultante = multiplicarFilaPorConstante(matrizCie1931[i], currentMatrix[i][0]);
                 matrizResultante.push(filaResultante);
             }
             matricesResultantesXYZ[variableName] = matrizResultante;
         }
-
     }
 
-    /*
-    //preparar la variable para exportar a un csv para comprobar datos.
-    const matrizResultante1 = matricesResultantesXYZ.matrix1;
-    const csvData = matrizResultante1.map(row => row.join(',')).join('\n');
-    fs.writeFileSync('matrizCalculatedXYZ.csv', csvData, 'utf-8');
-    */
-
-    /*
-    // Imprimir las matrices resultantes XYZ
-    for (const variableName in matricesResultantesXYZ) {
-        if (matricesResultantesXYZ.hasOwnProperty(variableName)) {
-            console.log(`${variableName} XYZ:`, matricesResultantesXYZ[variableName]);
-        }
-    }
-    */
     const tiempoFin = new Date()
     console.log('****** resultMatricesXmatrizCie1931 FINALIZA A LAS: ****', tiempoFin, tiempoFin.getMilliseconds())
 }
-//* *******************************************************
-//* ***** FUNCION SUMAR LAS COLUMNAS DE LAS MATRIZ  *******
-//* *******************************************************
+//* **************************************************************************
+//* ***** FUNCION SUMAR LAS COLUMNAS DE LAS MATRIZ  CELDAS W10,W11,W12 *******
+//* **************************************************************************
+//Son el resultado de sumar la columna R para la SumX, S para la SumY y T para la SumZ
 async function sumarColumnasMatrixXYZ() {
     const tiempoInicio = new Date();
     console.log('****** sumarColumnasMatrixXYZ HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
@@ -459,14 +514,14 @@ async function sumarColumnasMatrixXYZ() {
     return sumMatrices;
 }
 
-//* *******************************************************
-//* *********     FUNCION x y z Normalizados     **********
-//* *******************************************************
+//* ***************************************************************************
+//* *********     FUNCION x y z Normalizados  CELDAS W14, W15, W16   **********
+//* ***************************************************************************
+//para x_ = SumX/(SumX+SumY+SumZ) ; para la y_ = SumY/(SumX+SumY+SumZ); para la z_ = SumZ/(SumX+SumY+SumZ)
 async function obtener_xyzNorm(resultadosXYZ) {
     const tiempoInicio = new Date();
     console.log('****** obtener_xyzNorm HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
-
-
+        //convierto en array el objeto resultadosXYZ
     const arraySumMatrices = Object.entries(resultadosXYZ)
 
     const valoresXYZsumados = {};
@@ -483,9 +538,7 @@ async function obtener_xyzNorm(resultadosXYZ) {
         const x_ = sumX / sumTotal;
         const y_ = sumY / sumTotal;
         const z_ = sumZ / sumTotal;
-
         valoresXYZsumados[variableName] = { sumX, sumY, sumZ, x_, y_, z_ }
-
     }
     const tiempoFin = new Date()
     console.log('****** obtener_xyzNorm FINALIZA A LAS: ****', tiempoFin, tiempoFin.getMilliseconds())
@@ -493,9 +546,10 @@ async function obtener_xyzNorm(resultadosXYZ) {
     return valoresXYZsumados;
 }
 
-//* *******************************************************
-//* *********     FUNCION x y z Normalizados     **********
-//* *******************************************************
+//* *************************************************************
+//* *********     FUNCION OBTENER LX  CELDA W17   ***************
+//* *************************************************************
+// Es el resultado de multiplicar la SumY por la variable calcLx
 async function obtenerLx(valor, luminosidad) {
     const tiempoInicio = new Date();
     console.log('****** obtenerLx HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
@@ -532,13 +586,9 @@ async function obtenerLx(valor, luminosidad) {
 async function loadColors() {
     const tiempoInicio = new Date();
     console.log('****** loadColors HA EMPEZADO A EJECUTARSE ****', tiempoInicio, tiempoInicio.getMilliseconds())
-
+        //borro los elementos creados en el navegador
     clearChildElements(testColorColumn);
     clearChildElements(targetColorColumn);
-
-    //targetColorColumn.innerHTML = '';
-    //testColorColumn.innerHTML = '';
-
 
     // Cargar colores de prueba en el contenedor correspondiente
     for (const colorEntry of colorValues) {
@@ -572,6 +622,7 @@ async function loadColors() {
 
         // ... crear un cuadro de color con etiqueta ...
         targetColorColumn.appendChild(colorDiv); // Agregar al contenedor de objetivos
+        console.log('COLORDIV', colorDiv)
     }
     const tiempoFin = new Date()
     console.log('****** loadColors FINALIZA A LAS: ****', tiempoFin, tiempoFin.getMilliseconds())
